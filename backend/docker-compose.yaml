@@ -1,0 +1,25 @@
+services: 
+  mongo:
+    image: mongo:7
+    container_name: mongo
+    ports:
+      - "27017:27017" # I am exposing this because I also want to connect it to mongodb-compass locally
+    volumes:
+      - mongo_data:/data/db
+
+  api:
+    build: .
+    container_name: musify_backend
+    depends_on:
+      - mongo
+    environment:
+      - PORT=3000
+      - MONGO_URL=mongodb://mongo:27017/musify-songs
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./:/usr/src/app
+    command: ["npm", "run", "dev"] # We can use npm start for production
+
+volumes:
+  mongo_data: {}
