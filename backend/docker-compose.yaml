@@ -3,7 +3,7 @@ services:
     image: mongo:7
     container_name: mongo
     ports:
-      - "27017:27017" # I am exposing this because I also want to connect it to mongodb-compass locally
+      - "27017:27017"
     volumes:
       - mongo_data:/data/db
 
@@ -19,7 +19,7 @@ services:
       - "3000:3000"
     volumes:
       - ./:/usr/src/app
-    command: ["npm", "run", "dev"] # We can use npm start for production
+    command: ["npm", "run", "dev"] # We can use `npm start` for production
 
 volumes:
   mongo_data: {}
