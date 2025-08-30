@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import styled from "@emotion/styled";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "../store";
-import { createSong } from "../store/actions/songActions.ts";
+import { updateSong } from "../store/actions/songActions.ts";
+import type { Song } from "../store/songSlice.ts";
 
 // Icons
 const CloseIcon = () => (
@@ -23,7 +24,7 @@ const CloseIcon = () => (
   </svg>
 );
 
-const MusicIcon = () => (
+const EditIcon = () => (
   <svg
     width="24"
     height="24"
@@ -32,7 +33,7 @@ const MusicIcon = () => (
     xmlns="http://www.w3.org/2000/svg"
   >
     <path
-      d="M9 18V5L21 3V16M9 18C9 19.6569 7.65685 21 6 21C4.34315 21 3 19.6569 3 18C3 16.3431 4.34315 15 6 15C7.65685 15 9 16.3431 9 18ZM21 16C21 17.6569 19.6569 19 18 19C16.3431 19 15 17.6569 15 16C15 14.3431 16.3431 13 18 13C19.6569 13 21 14.3431 21 16Z"
+      d="M11 4H4C3.44772 4 3 4.44772 3 5V20C3 20.5523 3.44772 21 4 21H19C19.5523 21 20 20.5523 20 20V13M18.4142 5.41421C19.1953 4.63316 20.4616 4.63316 21.2426 5.41421C22.0237 6.19526 22.0237 7.46159 21.2426 8.24264L12.3431 17.1421C12.1536 17.3316 11.8978 17.4384 11.6314 17.4384H8.56066C8.00837 17.4384 7.56066 16.9907 7.56066 16.4384V13.3677C7.56066 13.1013 7.66742 12.8455 7.85696 12.656L16.7564 3.75646L18.4142 5.41421Z"
       stroke="currentColor"
       strokeWidth="2"
       strokeLinecap="round"
@@ -68,6 +69,14 @@ const Modal = styled.div`
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
   overflow: hidden;
+  transform: scale(0.95);
+  animation: modalAppear 0.2s ease forwards;
+
+  @keyframes modalAppear {
+    to {
+      transform: scale(1);
+    }
+  }
 `;
 
 const ModalHeader = styled.div`
@@ -189,11 +198,22 @@ const SubmitButton = styled(Button)`
   }
 `;
 
-interface CreateModalProps {
+const SongInfo = styled.div`
+  background: rgba(110, 69, 226, 0.1);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 10px;
+  font-size: 14px;
+  color: #b0b0b0;
+  border-left: 3px solid #6e45e2;
+`;
+
+interface EditModalProps {
+  song: Song | null;
   onClose: () => void;
 }
 
-export default function CreateModal({ onClose }: CreateModalProps) {
+export default function EditModal({ song, onClose }: EditModalProps) {
   const dispatch = useDispatch<AppDispatch>();
   const [form, setForm] = useState({
     title: "",
@@ -202,26 +222,52 @@ export default function CreateModal({ onClose }: CreateModalProps) {
     genre: "",
   });
 
+  // This is to pre-fill form when song data changes
+  useEffect(() => {
+    if (song) {
+      setForm({
+        title: song.title || "",
+        artist: song.artist || "",
+        album: song.album || "",
+        genre: song.genre || "",
+      });
+    }
+  }, [song]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = () => {
-    if (form.title && form.artist) {
-      dispatch(createSong(form));
+    if (song && song._id) {
+      dispatch(
+        updateSong({
+          ...song,
+          ...form,
+        })
+      );
       onClose();
     }
   };
 
   const isFormValid = form.title.trim() !== "" && form.artist.trim() !== "";
+  const hasChanges =
+    form.title !== song?.title ||
+    form.artist !== song?.artist ||
+    form.album !== song?.album ||
+    form.genre !== song?.genre;
+
+  if (!song) {
+    return null;
+  }
 
   return (
     <Overlay onClick={onClose}>
       <Modal onClick={(e) => e.stopPropagation()}>
         <ModalHeader>
           <Title>
-            <MusicIcon />
-            Add New Song
+            <EditIcon />
+            Edit Song
           </Title>
           <CloseButton onClick={onClose}>
             <CloseIcon />
@@ -229,6 +275,11 @@ export default function CreateModal({ onClose }: CreateModalProps) {
         </ModalHeader>
 
         <Form>
+          <SongInfo>
+            Editing: <strong>{song.title}</strong> by{" "}
+            <strong>{song.artist}</strong>
+          </SongInfo>
+
           <InputGroup>
             <Label>Song Title *</Label>
             <Input
@@ -276,8 +327,11 @@ export default function CreateModal({ onClose }: CreateModalProps) {
 
           <ButtonRow>
             <CancelButton onClick={onClose}>Cancel</CancelButton>
-            <SubmitButton onClick={handleSubmit} disabled={!isFormValid}>
-              Add Song
+            <SubmitButton
+              onClick={handleSubmit}
+              disabled={!isFormValid || !hasChanges}
+            >
+              Update Song
             </SubmitButton>
           </ButtonRow>
         </Form>

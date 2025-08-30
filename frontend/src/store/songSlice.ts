@@ -9,49 +9,89 @@ export interface Song {
   createdAt?: Date;
 }
 
-interface SongState {
-  list: Song[];
+interface SongsState {
+  songs: Song[];
+  currentSong: Song | null;
   loading: boolean;
-  error?: string;
+  error: string | null;
+  operation: string | null;
 }
 
-const initialState: SongState = {
-  list: [],
-  loading: false
+const initialSongsState: SongsState = {
+  songs: [],
+  currentSong: null,
+  loading: false,
+  error: null,
+  operation: null,
 }
 
 const songSlice = createSlice({
   name: "songs",
-  initialState,
+  initialState: initialSongsState,
   reducers: {
-    fetchSongs: (state) => { state.loading = true; },
-    fetchSongsSuccess: (state, action) => {
-      state.loading = false;
-      state.list = action.payload;
+    setLoading: (state, action) => {
+      state.loading = action.payload.loading;
+      state.operation = action.payload.operation;
+      state.error = null;
     },
-    fetchSongsFailure: (state, action) => {
+    setError: (state, action) => { 
       state.loading = false;
       state.error = action.payload;
+      state.operation = null;
     },
-    addSong: (state, action) => {
-      state.loading = true;
+    fetchSongsSuccess: (state, action) => {
+      state.loading = false;
+      state.songs = action.payload;
+      state.operation = null;
+      state.error = null;
     },
-    updateSong: (state, action) => {
-      state.loading = true;
+    fetchSongSuccess: (state, action) => {
+      state.loading = false;
+      state.currentSong = action.payload;
+      state.operation = null;
+      state.error = null;
     },
-    deleteSong: (state, action) => {
-      state.loading = true;
+    createSongSuccess: (state, action) => {
+      state.songs.push(action.payload);
+      state.loading = false;
+      state.operation = null;
+      state.error = null;
     },
+    updateSongSuccess: (state, action) => {
+      state.loading = false;
+      const index = state.songs.findIndex(song => song._id === action.payload._id);
+      if(index !== -1) {
+        state.songs[index] = action.payload;
+      }
+      state.currentSong = action.payload;
+      state.operation = null;
+      state.error = null;
+    },
+    deleteSongSuccess: (state, action) => {
+      state.loading = false;
+      state.songs = state.songs.filter(song => song._id !== action.payload);
+      state.operation = null;
+      state.error = null;
+    },
+    clearCurrentSong: (state) => {
+      state.currentSong = null;
+    },
+    clearError: (state) => {
+      state.error = null;
+    }
   }
 })
 
 export const {
-  fetchSongs,
+  setLoading,
+  setError,
   fetchSongsSuccess,
-  fetchSongsFailure,
-  addSong,
-  updateSong,
-  deleteSong
+  fetchSongSuccess,
+  createSongSuccess,
+  updateSongSuccess,
+  deleteSongSuccess,
+  clearCurrentSong,
+  clearError
 } = songSlice.actions;
 
 export default songSlice.reducer;
