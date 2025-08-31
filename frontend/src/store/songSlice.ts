@@ -6,6 +6,8 @@ export interface Song {
   artist: string;
   album: string;
   genre: string;
+  year?: number;
+  durationSec?: number;
   createdAt?: Date;
 }
 

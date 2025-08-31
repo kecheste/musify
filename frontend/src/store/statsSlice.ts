@@ -1,10 +1,47 @@
 import { createSlice } from "@reduxjs/toolkit";
 
+export interface GenreStats {
+  genre: string;
+  songCount: number;
+}
+
+export interface ArtistStats {
+  artist: string;
+  songCount: number;
+  albumCount: number;
+  albums: string[];
+}
+
+export interface AlbumStats {
+  album: string;
+  artist: string;
+  songCount: number;
+  year?: number;
+  genre: string;
+}
+
+export interface YearStats {
+  year: number;
+  songCount: number;
+}
+
 export interface Stats {
   totalSongs: number;
   totalArtists: number;
   totalAlbums: number;
   totalGenre: number;
+  // Detailed stats
+  genreStats: GenreStats[];
+  artistStats: ArtistStats[];
+  albumStats: AlbumStats[];
+  yearStats: YearStats[];
+  averageSongsPerArtist: number;
+  averageSongsPerAlbum: number;
+  averageAlbumsPerArtist: number;
+  totalDuration: number;
+  averageDuration: number;
+  oldestSong?: number;
+  newestSong?: number;
 }
 
 interface StatsState {
