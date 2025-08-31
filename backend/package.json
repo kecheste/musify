@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "ts-node src/index.ts",
     "build": "tsc",
-    "start": "nodemon dist/index.js"
+    "start": "nodemon dist/index.js",
+    "seed": "ts-node src/seeders/index.ts",
+    "seed:songs": "ts-node src/seeders/songSeeder.ts"
   },
   "author": "Abenezer Tesfaye",
   "license": "ISC",
