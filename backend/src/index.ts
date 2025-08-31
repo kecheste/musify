@@ -14,14 +14,16 @@ import statsRoute from "./routes/statsRoute";
 const app = express();
 
 app.use(express.json());
-app.use(cors({
-  origin: "http://localhost:5173",
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
 app.use(helmet());
 app.use(morgan("dev"));
 
-const MONGO_URI = process.env.MONGO_URL || "mongodb://mongo:27017/addissongs";
+const MONGO_URI = process.env.MONGO_URL || "mongodb://mongo:27017/addis-songs";
 
 // connect to MONGODB
 connect(MONGO_URI);
