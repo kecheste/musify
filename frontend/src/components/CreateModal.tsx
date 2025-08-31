@@ -48,7 +48,7 @@ const Overlay = styled.div`
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(15, 12, 41, 0.8);
+  background: rgba(27, 27, 27, 0.8);
   backdrop-filter: blur(5px);
   display: flex;
   justify-content: center;
@@ -58,7 +58,7 @@ const Overlay = styled.div`
 `;
 
 const Modal = styled.div`
-  background: rgba(30, 27, 48, 0.95);
+  background: rgba(26, 26, 26, 0.95);
   border-radius: 16px;
   padding: 0;
   width: 100%;
@@ -137,8 +137,8 @@ const Input = styled.input`
 
   &:focus {
     outline: none;
-    border-color: #6e45e2;
-    box-shadow: 0 0 0 3px rgba(110, 69, 226, 0.2);
+    border-color: #ffdc9bff;
+    box-shadow: 0 0 0 3px rgba(226, 140, 69, 0.2);
   }
 
   &::placeholder {
@@ -180,7 +180,7 @@ const CancelButton = styled(Button)`
 `;
 
 const SubmitButton = styled(Button)`
-  background: linear-gradient(135deg, #6e45e2 0%, #88d3ce 100%);
+  background: linear-gradient(135deg, #e2914565 0%, #adadadff 100%);
   color: white;
 
   &:hover:not(:disabled) {
@@ -200,6 +200,8 @@ export default function CreateModal({ onClose }: CreateModalProps) {
     artist: "",
     album: "",
     genre: "",
+    year: "",
+    durationSec: "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -208,7 +210,16 @@ export default function CreateModal({ onClose }: CreateModalProps) {
 
   const handleSubmit = () => {
     if (form.title && form.artist) {
-      dispatch(createSong(form));
+      const songData = {
+        title: form.title,
+        artist: form.artist,
+        album: form.album,
+        genre: form.genre,
+        // Only include year and duration if they have values
+        ...(form.year && { year: parseInt(form.year) }),
+        ...(form.durationSec && { durationSec: parseInt(form.durationSec) }),
+      };
+      dispatch(createSong(songData));
       onClose();
     }
   };
@@ -268,10 +279,44 @@ export default function CreateModal({ onClose }: CreateModalProps) {
             <Input
               type="text"
               name="genre"
-              placeholder="Enter genre"
+              placeholder="Enter genre (e.g., rock, pop, jazz)"
               value={form.genre}
               onChange={handleChange}
             />
+          </InputGroup>
+
+          <InputGroup>
+            <Label>Year</Label>
+            <Input
+              type="number"
+              name="year"
+              placeholder="Release year (e.g., 2023)"
+              value={form.year}
+              onChange={handleChange}
+              min="1800"
+              max={new Date().getFullYear()}
+            />
+          </InputGroup>
+
+          <InputGroup>
+            <Label>Duration (seconds)</Label>
+            <Input
+              type="number"
+              name="durationSec"
+              placeholder="Duration in seconds (e.g., 180 for 3:00)"
+              value={form.durationSec}
+              onChange={handleChange}
+              min="1"
+              max="7200"
+            />
+            {form.durationSec && (
+              <div
+                style={{ fontSize: "12px", color: "#88d3ce", marginTop: "4px" }}
+              >
+                ≈ {Math.floor(parseInt(form.durationSec) / 60)}:
+                {(parseInt(form.durationSec) % 60).toString().padStart(2, "0")}
+              </div>
+            )}
           </InputGroup>
 
           <ButtonRow>

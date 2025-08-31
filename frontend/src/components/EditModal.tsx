@@ -49,7 +49,7 @@ const Overlay = styled.div`
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(15, 12, 41, 0.8);
+  background: rgba(37, 37, 37, 0.8);
   backdrop-filter: blur(5px);
   display: flex;
   justify-content: center;
@@ -59,7 +59,7 @@ const Overlay = styled.div`
 `;
 
 const Modal = styled.div`
-  background: rgba(30, 27, 48, 0.95);
+  background: rgba(49, 49, 49, 0.95);
   border-radius: 16px;
   padding: 0;
   width: 100%;
@@ -146,7 +146,7 @@ const Input = styled.input`
 
   &:focus {
     outline: none;
-    border-color: #6e45e2;
+    border-color: #8a7865ff;
     box-shadow: 0 0 0 3px rgba(110, 69, 226, 0.2);
   }
 
@@ -189,23 +189,23 @@ const CancelButton = styled(Button)`
 `;
 
 const SubmitButton = styled(Button)`
-  background: linear-gradient(135deg, #6e45e2 0%, #88d3ce 100%);
+  background: linear-gradient(135deg, #383838ff 0%, #d3c188ff 100%);
   color: white;
 
   &:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(110, 69, 226, 0.4);
+    box-shadow: 0 5px 15px rgba(223, 154, 108, 0.4);
   }
 `;
 
 const SongInfo = styled.div`
-  background: rgba(110, 69, 226, 0.1);
+  background: rgba(0, 0, 0, 0.1);
   border-radius: 8px;
   padding: 12px 16px;
   margin-bottom: 10px;
   font-size: 14px;
   color: #b0b0b0;
-  border-left: 3px solid #6e45e2;
+  border-left: 3px solid #e28c45ff;
 `;
 
 interface EditModalProps {
@@ -220,6 +220,8 @@ export default function EditModal({ song, onClose }: EditModalProps) {
     artist: "",
     album: "",
     genre: "",
+    year: "",
+    durationSec: "",
   });
 
   // This is to pre-fill form when song data changes
@@ -230,6 +232,8 @@ export default function EditModal({ song, onClose }: EditModalProps) {
         artist: song.artist || "",
         album: song.album || "",
         genre: song.genre || "",
+        year: song.year ? song.year.toString() : "",
+        durationSec: song.durationSec ? song.durationSec.toString() : "",
       });
     }
   }, [song]);
@@ -240,12 +244,16 @@ export default function EditModal({ song, onClose }: EditModalProps) {
 
   const handleSubmit = () => {
     if (song && song._id) {
-      dispatch(
-        updateSong({
-          ...song,
-          ...form,
-        })
-      );
+      const updatedSong = {
+        ...song,
+        title: form.title,
+        artist: form.artist,
+        album: form.album,
+        genre: form.genre,
+        year: form.year ? parseInt(form.year) : undefined,
+        durationSec: form.durationSec ? parseInt(form.durationSec) : undefined,
+      };
+      dispatch(updateSong(updatedSong));
       onClose();
     }
   };
@@ -255,7 +263,9 @@ export default function EditModal({ song, onClose }: EditModalProps) {
     form.title !== song?.title ||
     form.artist !== song?.artist ||
     form.album !== song?.album ||
-    form.genre !== song?.genre;
+    form.genre !== song?.genre ||
+    form.year !== (song?.year ? song.year.toString() : "") ||
+    form.durationSec !== (song?.durationSec ? song.durationSec.toString() : "");
 
   if (!song) {
     return null;
@@ -319,10 +329,44 @@ export default function EditModal({ song, onClose }: EditModalProps) {
             <Input
               type="text"
               name="genre"
-              placeholder="Enter genre"
+              placeholder="Enter genre (e.g., rock, pop, jazz)"
               value={form.genre}
               onChange={handleChange}
             />
+          </InputGroup>
+
+          <InputGroup>
+            <Label>Year</Label>
+            <Input
+              type="number"
+              name="year"
+              placeholder="Release year (e.g., 2023)"
+              value={form.year}
+              onChange={handleChange}
+              min="1800"
+              max={new Date().getFullYear()}
+            />
+          </InputGroup>
+
+          <InputGroup>
+            <Label>Duration (seconds)</Label>
+            <Input
+              type="number"
+              name="durationSec"
+              placeholder="Duration in seconds (e.g., 180 for 3:00)"
+              value={form.durationSec}
+              onChange={handleChange}
+              min="1"
+              max="7200"
+            />
+            {form.durationSec && (
+              <div
+                style={{ fontSize: "12px", color: "#88d3ce", marginTop: "4px" }}
+              >
+                ≈ {Math.floor(parseInt(form.durationSec) / 60)}:
+                {(parseInt(form.durationSec) % 60).toString().padStart(2, "0")}
+              </div>
+            )}
           </InputGroup>
 
           <ButtonRow>
