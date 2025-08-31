@@ -1,7 +1,11 @@
 import Song from "../models/Song";
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from "express";
 
-export async function createSong(req: Request, res: Response, next: NextFunction) {
+export async function createSong(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
   try {
     const payload = req.body;
     const song = await Song.create(payload);
@@ -12,16 +16,18 @@ export async function createSong(req: Request, res: Response, next: NextFunction
   }
 }
 
-export async function getSongs(req: Request, res: Response, next: NextFunction) {
+export async function getSongs(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
   try {
     const [items, total] = await Promise.all([
-      Song.find()
-        .limit(Number(10))
-        .exec(),
-      Song.countDocuments()
+      Song.find(),
+      Song.countDocuments(),
     ]);
-   
-   res.json({total, items});
+
+    res.json({ total, items });
   } catch (error) {
     console.log(error);
     next(error);
@@ -34,59 +40,83 @@ export async function getSong(req: Request, res: Response, next: NextFunction) {
 
   try {
     const song = await Song.findById(id);
-    if(!song) {
-      res.status(404).send({message: "No song found with that id."});
+    if (!song) {
+      res.status(404).send({ message: "No song found with that id." });
     }
     res.json(song);
   } catch (error) {
     console.log(error);
-    next(error)
+    next(error);
   }
 }
 
-export async function updateSong(req: Request, res: Response, next: NextFunction) {
+export async function updateSong(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
   try {
     const { id } = req.params;
-    if (!id) res.status(400).send({message: "No id found"});
+    if (!id) res.status(400).send({ message: "No id found" });
 
-    const { title, album, artist, genre } = req.body;
-    if (!title || !album || !artist || !genre ) {
-      res.status(400).send({message: "Song information not passed"}) 
+    const { title, album, artist, genre, year, durationSec } = req.body;
+    if (!title || !album || !artist || !genre) {
+      res.status(400).send({ message: "Song information not passed" });
     }
 
-    const updateSong = await Song.findByIdAndUpdate(
+    const updateData: any = {
+      title,
+      album,
+      artist,
+      genre,
+    };
+
+    if (year !== undefined && year !== null && year !== "") {
+      updateData.year = year;
+    } else if (year === undefined || year === null || year === "") {
+      updateData.$unset = { ...updateData.$unset, year: "" };
+    }
+
+    if (durationSec !== undefined && durationSec !== null && durationSec !== "") {
+      updateData.durationSec = durationSec;
+    } else if (durationSec === undefined || durationSec === null || durationSec === "") {
+      updateData.$unset = { ...updateData.$unset, durationSec: "" };
+    }
+
+    const updatedSong = await Song.findByIdAndUpdate(
       id,
-      {
-        title: title,
-        album: album,
-        artist: artist,
-        genre: genre,
-      },
+      updateData,
       { new: true }
     );
-    
-    res.json(updateSong);
+
+    res.json(updatedSong);
   } catch (err) {
     console.log(err);
-    next(err)
+    next(err);
   }
 }
 
-export async function deleteSong(req: Request, res: Response, next: NextFunction) {
+export async function deleteSong(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
   try {
     const { id } = req.params;
-    if (!id) res.status(400).send({message: "No id found from the req params"});
+    if (!id)
+      res.status(400).send({ message: "No id found from the req params" });
 
     const song = await Song.findById(id);
-    if(!song) res.status(400).send({message: "Song not found or already deleted"});
+    if (!song)
+      res.status(400).send({ message: "Song not found or already deleted" });
 
     await Song.findByIdAndDelete(id);
     res.json({
       sucess: true,
-      message: `Song with id ${id} deleted sucessfully!`
-    })
+      message: `Song with id ${id} deleted sucessfully!`,
+    });
   } catch (err) {
     console.log(err);
-    next(err)
+    next(err);
   }
 }
